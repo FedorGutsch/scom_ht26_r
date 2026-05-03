@@ -58,7 +58,6 @@
 | Компонент | Технологии |
 |-----------|------------|
 | **Frontend** | React, Tailwind CSS |
-| **Icons** | Lucide-React |
 | **Backend/AI** | Python, LLM через OpenRouter API |
 | **Data** | SQLite3 |
 | **Контейнеризация** | Docker |

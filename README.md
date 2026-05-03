@@ -57,10 +57,10 @@
 
 | Компонент | Технологии |
 |-----------|------------|
-| **Frontend** | React, Tailwind CSS (брендбук Совкомбанка) |
+| **Frontend** | React, Tailwind CSS |
 | **Icons** | Lucide-React |
 | **Backend/AI** | Python, LLM через OpenRouter API |
-| **Data** | vacancies.csv, candidates.csv (реальное время) |
+| **Data** | SQLite3 |
 | **Контейнеризация** | Docker |
 
 ---
@@ -98,79 +98,6 @@ cp .env.example .env
 # Запустите проект
 docker-compose up -d --build
 ```
-
-### Доступ к приложению
-
-| Сервис | URL |
-|--------|-----|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8000 |
-| API Docs | http://localhost:8000/docs |
-
----
-
-##  Структура проекта
-
-```
-scom_ht26_r/
-├── frontend/                 # React-приложение
-│   ├── src/
-│   │   ├── components/      # UI-компоненты
-│   │   │   ├── RadarChart.jsx
-│   │   │   ├── SkillTags.jsx
-│   │   │   └── MatchScore.jsx
-│   │   ├── api/             # API-клиент
-│   │   └── App.jsx          # Корневой компонент
-│   └── package.json
-│
-├── backend/                  # Python-бэкенд
-│   ├── app/
-│   │   ├── main.py          # Точка входа
-│   │   ├── models.py        # Pydantic-модели
-│   │   ├── llm_client.py    # Интеграция с OpenRouter
-│   │   └── data_processor.py # Обработка CSV
-│   ├── requirements.txt
-│   └── Dockerfile
-│
-├── data/                     # Датасеты
-│   ├── vacancies.csv
-│   ├── candidates.csv
-│   └── actions_history.csv
-│
-└── docker-compose.yml
-```
-
----
-
-##  Примеры использования
-
-### API: Анализ соответствия
-
-```python
-import requests
-
-response = requests.post('http://localhost:8000/api/match', json={
-    'candidate_id': 123,
-    'vacancy_id': 456
-})
-
-result = response.json()
-# {
-#   "match_score": 0.75,
-#   "radar": {
-#     "hard_skills": 0.8,
-#     "experience": 0.7,
-#     "code": 0.6,
-#     "architecture": 0.5,
-#     "soft_skills": 0.9
-#   },
-#   "matching_skills": ["Python", "Docker", "SQL"],
-#   "missing_skills": ["Kubernetes", "CI/CD"],
-#   "feedback": "Кандидат хорошо подходит...",
-#   "recommendations": [...]
-# }
-```
-
 ---
 
 ##  Ценность для бизнеса

@@ -1,0 +1,24 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        'sv-dark': '#002D72',
+        'sv-light': '#69B3E7',
+        'sv-red': '#E43E3A',
+        'sv-bg': '#F4F5F7',
+      },
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
+      borderRadius: {
+        'sv': '8px',
+      }
+    },
+  },
+  plugins: [],
+}

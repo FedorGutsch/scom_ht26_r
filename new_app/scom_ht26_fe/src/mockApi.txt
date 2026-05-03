@@ -1,0 +1,109 @@
+export const mockData = {
+  candidates: [
+    { 
+      id: 1, 
+      name: "Алексей Иванов (Senior)", 
+      role: "Android Dev", 
+      actions_history: [
+        { vacancy_id: "101", action: "просмотр", time: "2025-04-10" },
+        { vacancy_id: "101", action: "просмотр", time: "2025-04-12" },
+        { vacancy_id: "101", action: "просмотр", time: "2025-04-15" }
+      ]
+    },
+    { 
+      id: 3, 
+      name: "Иван Петров (Middle)", 
+      role: "Android Dev",
+      actions_history: [
+        { vacancy_id: "99", action: "отказ", time: "2025-03-20" }
+      ]
+    },
+    { 
+      id: 2, 
+      name: "Мария Смирнова (Junior)", 
+      role: "QA Engineer",
+      actions_history: [
+        { vacancy_id: "101", action: "просмотр", time: "2025-04-16" }
+      ]
+    },
+  ],
+  vacancies: [
+    {
+      id: "101",
+      title: "Android-разработчик (Senior)",
+      locations: ["Казань", "Краснодар", "Саратов"],
+      department: "Совкомбанк Технологии",
+      meta: "Информационные технологии, интернет, телеком • Полный рабочий день • 5+ лет",
+      stack: "Kotlin, Dagger2, Coroutine, Room, Retrofit, MVVM/MVI, Compose.",
+      desc: "Наша команда активно занимается разработкой мобильных приложений и сервисов, направленных на упрощение финансовых операций и повышение уровня обслуживания клиентов.",
+      tasks: [
+        "Развивать и поддерживать функционал приложения",
+        "Проводить Code Review",
+        "Тесно взаимодействовать с аналитиками и тестировщиками",
+        "Участвовать в принятии технических решений"
+      ]
+    }
+  ]
+};
+
+export const mockAnalyze = async (candidateId) => {
+  const candidate = mockData.candidates.find(c => c.id.toString() === candidateId);
+  
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Считаем просмотры текущей вакансии (ID 101)
+      const viewsCount = candidate.actions_history.filter(a => a.vacancy_id === "101" && a.action === "просмотр").length;
+      const hasRecentRefusal = candidate.actions_history.some(a => a.action === "отказ");
+
+      // СЦЕНАРИЙ 1: Senior
+      if (candidateId === '1') {
+        resolve({
+          score: 92,
+          metrics: { hardSkills: 95, experience: 100, architecture: 80 },
+          matched_skills: ["Kotlin", "MVVM/MVI", "Retrofit"],
+          missing_skills: [],
+          feedback_text: viewsCount > 2 
+            ? `Вы изучали эту вакансию уже ${viewsCount} раза. Ваши навыки идеально подходят — не сомневайтесь, это отличный мэтч!`
+            : "Ваш опыт идеально ложится в требования команды. Мы очень ждем вашего отклика.",
+          ctas: [
+            { text: "Откликнуться с уверенностью", style: "primary", icon: "Send" },
+            { text: "Создать сопроводительное с ИИ", style: "ai", icon: "Sparkles" }
+          ],
+          history_insight: viewsCount > 2 ? "Высокий интерес к позиции" : null
+        });
+      } 
+      // СЦЕНАРИЙ 2: Middle
+      else if (candidateId === '3') {
+        resolve({
+          score: 65,
+          metrics: { hardSkills: 70, experience: 50, architecture: 60 },
+          matched_skills: ["Kotlin", "Retrofit"],
+          missing_skills: ["Dagger2", "Compose"],
+          feedback_text: hasRecentRefusal 
+            ? "Мы видим ваш интерес к мобильной разработке. Эта вакансия отличается от предыдущей более гибкими требованиями к архитектурному опыту. Попробуйте свои силы!"
+            : "У вас хорошая база, но стоит подтянуть работу с DI-контейнерами для этой позиции.",
+          ctas: [
+            { text: "Добавить Dagger2 в профиль", style: "outline", icon: "PlusCircle" },
+            { text: "Откликнуться", style: "primary", icon: "MessageSquare" }
+          ],
+          history_insight: hasRecentRefusal ? "Учтен прошлый опыт откликов" : null
+        });
+      } 
+      // СЦЕНАРИЙ 3: Junior
+      else {
+        resolve({
+          score: 25,
+          metrics: { hardSkills: 30, experience: 10, architecture: 15 },
+          matched_skills: ["Базовое IT"],
+          missing_skills: ["Kotlin", "Android SDK"],
+          feedback_text: "Эта вакансия требует Senior-уровня. Мы сохранили ваш профиль и подобрали варианты, где вы сможете быстрее вырасти.",
+          ctas: [
+            { text: "Посмотреть вакансии Junior QA", style: "primary", icon: "Search", linkQuery: "Junior QA Engineer" },
+            { text: "Смотреть стажировки", style: "outline", icon: "GraduationCap", linkQuery: "Стажер" }
+          ],
+          history_insight: null
+        });
+      }
+    }, 1500);
+  });
+};

@@ -1,0 +1,8 @@
+pydantic
+pydantic_settings
+sqlalchemy
+pandas
+numpy
+fastapi
+requests
+uvicorn

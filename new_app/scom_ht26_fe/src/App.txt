@@ -1,0 +1,241 @@
+import { useState, useEffect } from 'react';
+import { 
+  Sparkles, MapPin, CheckCircle2, AlertCircle, 
+  Loader2, Target, Cpu, Layers, TrendingUp, Send, MessageSquare, 
+  BookmarkPlus, Search, GraduationCap, BellRing, PlusCircle, 
+  History, ArrowRight 
+} from 'lucide-react';
+import { mockData, mockAnalyze } from './mockApi';
+
+// 1. ПЕРЕМЕННЫЕ И ПОМОЩНИКИ (Вынесены за пределы компонента, чтобы линтер не ругался)
+const IconMap = {
+  Send, Sparkles, PlusCircle, MessageSquare, BookmarkPlus, Search, GraduationCap, BellRing
+};
+
+const getScoreColor = (score) => {
+  if (score >= 80) return 'text-green-500';
+  if (score >= 50) return 'text-yellow-500';
+  return 'text-sv-red';
+};
+
+const getScoreBg = (score) => {
+  if (score >= 80) return 'bg-green-500';
+  if (score >= 50) return 'bg-yellow-500';
+  return 'bg-sv-red';
+};
+
+// 2. ВСПОМОГАТЕЛЬНЫЙ КОМПОНЕНТ (Объявлен снаружи App)
+const MetricBar = ({ label, score, icon: Icon }) => (
+  <div className="mb-3">
+    <div className="flex justify-between items-center mb-1.5">
+      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide flex items-center gap-1.5">
+        <Icon size={12} className="text-sv-blue" /> {label}
+      </span>
+      <span className={`text-[12px] font-black ${getScoreColor(score)}`}>{score}%</span>
+    </div>
+    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+      <div 
+        className={`h-1.5 rounded-full transition-all duration-1000 ease-out ${getScoreBg(score)}`} 
+        style={{ width: `${score}%` }}
+      ></div>
+    </div>
+  </div>
+);
+
+// 3. ОСНОВНОЙ КОМПОНЕНТ
+export default function App() {
+  const [candidates] = useState(mockData.candidates);
+  const vacancy = mockData.vacancies[0]; 
+  
+  const [selectedCandidateId, setSelectedCandidateId] = useState(mockData.candidates[0].id.toString());
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [scanPosition, setScanPosition] = useState(0);
+
+  const getSearchUrl = (text) => {
+    const encodedText = encodeURIComponent(text).replace(/%20/g, '+');
+    return `https://people.sovcombank.ru/vacancies?text=${encodedText}`;
+  };
+
+  useEffect(() => {
+    let interval;
+    if (isAnalyzing) {
+      interval = setInterval(() => {
+        setScanPosition(prev => (prev >= 100 ? 0 : prev + 2));
+      }, 30);
+    }
+    return () => clearInterval(interval);
+  }, [isAnalyzing]);
+
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+    try {
+      const result = await mockAnalyze(selectedCandidateId);
+      setAnalysisResult(result);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white font-sans">
+      {/* HEADER */}
+      <header className="border-b border-gray-200 py-4 px-6 md:px-12 flex justify-between items-center sticky top-0 bg-white z-20">
+        <div className="flex items-center gap-6">
+          <div className="font-black text-xl tracking-tight text-sv-dark flex items-center gap-2">
+            <div className="w-6 h-6 bg-sv-dark rounded-full flex items-center justify-center text-white text-[10px]">С</div>
+            СОВКОМБАНК
+          </div>
+          <span className="font-medium text-sm hidden md:block">Хочу к вам</span>
+          <div className="hidden lg:flex items-center gap-2 bg-[#E6EDFF] text-sv-blue px-3 py-1 rounded-full text-xs font-medium border border-[#CCDCFF]">
+            👩‍💻 Помогу тебе найти работу!
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-[1200px] mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-12 items-start">
+        {/* ВАКАНСИЯ */}
+        <div>
+          <h1 className="text-4xl font-extrabold text-sv-dark mb-6 tracking-tight">{vacancy.title}</h1>
+          <div className="flex flex-wrap gap-3 mb-4">
+            {vacancy.locations.map((loc, i) => (
+              <span key={i} className="flex items-center gap-1 bg-sv-gray-bg text-[13px] px-3 py-1.5 rounded-md text-sv-dark font-medium">
+                <MapPin size={14} className="text-sv-blue" /> {loc}
+              </span>
+            ))}
+            <span className="bg-sv-gray-bg text-[13px] px-3 py-1.5 rounded-md text-sv-dark font-medium">
+              {vacancy.department}
+            </span>
+          </div>
+          <p className="text-[13px] text-gray-500 mb-8 pb-8 border-b border-gray-100 italic">{vacancy.meta}</p>
+          <div className="space-y-8 text-[15px] leading-relaxed text-[#333]">
+            <p><strong>СТЕК:</strong> {vacancy.stack}</p>
+            <p className="text-gray-700">{vacancy.desc}</p>
+          </div>
+        </div>
+
+        {/* ПРАВАЯ ПАНЕЛЬ */}
+        <div className="flex flex-col gap-6 lg:sticky lg:top-24">
+          <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-xl">
+            <h4 className="text-[10px] font-bold text-sv-blue uppercase mb-2 tracking-widest">Тестовый профиль</h4>
+            <select 
+              className="w-full p-2.5 text-[13px] font-medium border border-blue-200 rounded-lg bg-white outline-none"
+              value={selectedCandidateId}
+              onChange={(e) => { setSelectedCandidateId(e.target.value); setAnalysisResult(null); }}
+            >
+              {candidates.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {!analysisResult && !isAnalyzing && (
+            <div className="bg-sv-gray-bg p-6 rounded-3xl flex flex-col gap-3">
+              <button className="w-full bg-sv-blue text-white font-semibold py-3.5 rounded-full transition-all opacity-90 cursor-default">
+                Откликнуться
+              </button>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <button 
+                  onClick={handleAnalyze}
+                  className="relative overflow-hidden w-full bg-gradient-to-r from-[#3B5EFE] to-[#8C3BFE] text-white font-bold py-4 rounded-full transition-all shadow-md active:scale-95 group"
+                >
+                  <div className="absolute inset-0 -translate-x-full bg-white/20 skew-x-12 group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                  <Sparkles size={20} className="inline mr-2" /> SkillMatch AI
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isAnalyzing && (
+            <div className="bg-white rounded-3xl border border-blue-100 shadow-xl overflow-hidden relative h-64 flex flex-col items-center justify-center">
+              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_#3B5EFE_1px,_transparent_1px)] bg-[length:16px_16px]"></div>
+              <div 
+                className="absolute left-0 right-0 h-16 bg-gradient-to-b from-transparent via-sv-blue/20 to-sv-blue/40 border-b border-sv-blue z-10"
+                style={{ top: `${scanPosition}%`, transform: 'translateY(-100%)' }}
+              ></div>
+              <Cpu size={48} className="text-blue-200 mb-4 animate-pulse" />
+              <p className="text-sv-blue font-bold tracking-widest text-[11px] uppercase">Оценка совместимости...</p>
+            </div>
+          )}
+
+          {analysisResult && !isAnalyzing && (
+            <div className="bg-white p-7 rounded-3xl shadow-xl border border-blue-50 animate-in relative overflow-hidden">
+              <div className="flex items-end justify-between mb-8">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Матч профиля</p>
+                  <div className={`text-6xl font-black leading-none ${getScoreColor(analysisResult.score)} tracking-tighter`}>
+                    {analysisResult.score}%
+                  </div>
+                </div>
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center border-4 border-white shadow-sm">
+                  {analysisResult.score >= 80 ? <Target size={28} className="text-green-500"/> : <TrendingUp size={28} className="text-sv-blue"/>}
+                </div>
+              </div>
+
+              {analysisResult.history_insight && (
+                <div className="mb-4 flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-2 rounded-xl border border-amber-100 text-[11px] font-bold uppercase tracking-wider animate-pulse">
+                  <History size={14} /> {analysisResult.history_insight}
+                </div>
+              )}
+
+              <div className="bg-gray-50/80 p-4 rounded-2xl mb-6 border border-gray-100">
+                <MetricBar label="Хард-скиллы" score={analysisResult.metrics.hardSkills} icon={Cpu} />
+                <MetricBar label="Опыт работы" score={analysisResult.metrics.experience} icon={TrendingUp} />
+                <MetricBar label="Архитектура" score={analysisResult.metrics.architecture} icon={Layers} />
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 mb-6">
+                {analysisResult.matched_skills.map((s, i) => (
+                  <span key={i} className="bg-green-50 text-green-700 text-[11px] font-medium px-2.5 py-1 rounded-lg border border-green-100/50">
+                    <CheckCircle2 size={10} className="inline mr-1 mb-0.5" />{s}
+                  </span>
+                ))}
+                {analysisResult.missing_skills.map((s, i) => (
+                  <span key={i} className="bg-red-50 text-sv-red text-[11px] font-medium px-2.5 py-1 rounded-lg border border-red-100/50">
+                    <AlertCircle size={10} className="inline mr-1 mb-0.5" />{s}
+                  </span>
+                ))}
+              </div>
+
+              <div className="bg-[#F8FAFC] p-4 rounded-2xl text-[13px] text-gray-700 italic border-l-4 border-sv-blue leading-relaxed mb-6">
+                "{analysisResult.feedback_text}"
+              </div>
+
+              <div className="space-y-3">
+                {analysisResult.ctas.map((cta, index) => {
+                  const IconCmp = IconMap[cta.icon] || ArrowRight;
+                  const baseStyle = "w-full flex items-center justify-center gap-2 py-3.5 rounded-full text-[13px] font-bold transition-all";
+                  
+                  let themeStyle = "bg-gray-100 text-gray-700";
+                  if (cta.style === "primary") themeStyle = "bg-sv-blue text-white hover:bg-sv-blue-hover";
+                  if (cta.style === "ai") themeStyle = "bg-gradient-to-r from-[#3B5EFE] to-[#8C3BFE] text-white hover:opacity-90";
+                  if (cta.style === "outline") themeStyle = "bg-white text-sv-blue border-2 border-sv-blue hover:bg-blue-50";
+
+                  if (cta.linkQuery) {
+                    return (
+                      <a key={index} href={getSearchUrl(cta.linkQuery)} target="_blank" rel="noopener noreferrer" className={`${baseStyle} ${themeStyle} no-underline`}>
+                        <IconCmp size={16} /> {cta.text}
+                      </a>
+                    );
+                  }
+                  return (
+                    <button key={index} className={`${baseStyle} ${themeStyle}`}>
+                      <IconCmp size={16} /> {cta.text}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button onClick={() => setAnalysisResult(null)} className="w-full mt-4 text-[11px] font-semibold text-gray-400 hover:text-sv-blue text-center underline decoration-dotted">
+                Назад к описанию
+              </button>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}

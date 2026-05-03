@@ -1,0 +1,116 @@
+export const mockData = {
+  candidates: [
+    { 
+      id: 1, 
+      name: "Алексей Иванов (Senior)", 
+      role: "Android Dev", 
+      actions_history: [
+        { vacancy_id: "101", action: "просмотр", time: "2025-04-10" },
+        { vacancy_id: "101", action: "просмотр", time: "2025-04-12" },
+        { vacancy_id: "101", action: "просмотр", time: "2025-04-15" }
+      ]
+    },
+    { 
+      id: 3, 
+      name: "Иван Петров (Middle)", 
+      role: "Android Dev",
+      actions_history: [{ vacancy_id: "99", action: "отказ", time: "2025-03-20" }]
+    },
+    { 
+      id: 2, 
+      name: "Мария Смирнова (Junior)", 
+      role: "QA Engineer",
+      actions_history: [{ vacancy_id: "101", action: "просмотр", time: "2025-04-16" }]
+    },
+  ],
+  vacancies: [
+    {
+      id: "101",
+      title: "Android-разработчик (Senior)",
+      locations: ["Казань", "Краснодар", "Саратов"],
+      department: "Совкомбанк Технологии",
+      meta: "Информационные технологии, интернет, телеком • Полный рабочий день • 5+ лет",
+      stack: "Kotlin, Dagger2, Coroutine, Room, Retrofit, MVVM/MVI, Compose.",
+      desc: "Наша команда активно занимается разработкой мобильных приложений и сервисов...",
+      tasks: [
+        "Развивать и поддерживать функционал приложения",
+        "Проводить Code Review",
+        "Тесно взаимодействовать с аналитиками и тестировщиками"
+      ]
+    }
+  ]
+};
+
+export const mockAnalyze = async (candidateId) => {
+  const candidate = mockData.candidates.find(c => c.id.toString() === candidateId);
+  
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const viewsCount = candidate.actions_history.filter(a => a.vacancy_id === "101" && a.action === "просмотр").length;
+      const hasRecentRefusal = candidate.actions_history.some(a => a.action === "отказ");
+
+      // СЦЕНАРИЙ 1: Senior (Всё идеально)
+      if (candidateId === '1') {
+        resolve({
+          score: 92,
+          // 5 метрик для красивого радара
+          metrics: { hardSkills: 95, experience: 100, architecture: 85, codeQuality: 90, softSkills: 80 },
+          matched_skills: ["Kotlin", "MVVM/MVI", "Retrofit"],
+          missing_skills: [],
+          feedback_text: viewsCount > 2 
+            ? `Вы изучали эту вакансию уже ${viewsCount} раза. Ваши навыки идеально подходят — не сомневайтесь!`
+            : "Ваш опыт идеально ложится в требования команды. Мы очень ждем вашего отклика.",
+          ctas: [
+            { text: "Откликнуться с уверенностью", style: "primary", icon: "Send" },
+            { text: "Создать сопроводительное с ИИ", style: "ai", icon: "Sparkles" }
+          ],
+          history_insight: viewsCount > 2 ? "Высокий интерес к позиции" : null,
+          habr_article: null, // Сеньору не нужно обучение
+          suggest_referral: false 
+        });
+      } 
+      // СЦЕНАРИЙ 2: Middle (Не хватает Хардов, даем статью)
+      else if (candidateId === '3') {
+        resolve({
+          score: 65,
+          metrics: { hardSkills: 60, experience: 70, architecture: 50, codeQuality: 80, softSkills: 90 },
+          matched_skills: ["Kotlin", "Retrofit"],
+          missing_skills: ["Dagger2", "Compose"],
+          feedback_text: hasRecentRefusal 
+            ? "Мы видим ваш интерес к мобильной разработке. Стоит подтянуть работу с DI (Dagger2)."
+            : "У вас хорошая база, но стоит подтянуть архитектурные паттерны для этой позиции.",
+          ctas: [
+            { text: "Откликнуться (мотивационное)", style: "primary", icon: "MessageSquare" },
+            { text: "Добавить Dagger2 в профиль", style: "outline", icon: "PlusCircle" }
+          ],
+          history_insight: hasRecentRefusal ? "Учтен прошлый опыт откликов" : null,
+          // Ссылка на Хабр!
+          habr_article: {
+            title: "Как мы применяем современные UI-паттерны в финтехе",
+            url: "https://habr.com/ru/companies/sovcombank_technologies/articles/865970/"
+          },
+          suggest_referral: false
+        });
+      } 
+      // СЦЕНАРИЙ 3: Junior (Отказ -> предлагаем Хабр + Пригласить друга)
+      else {
+        resolve({
+          score: 25,
+          metrics: { hardSkills: 30, experience: 10, architecture: 15, codeQuality: 40, softSkills: 85 },
+          matched_skills: ["Базовое IT"],
+          missing_skills: ["Kotlin", "Android SDK"],
+          feedback_text: "Эта вакансия требует Senior-уровня. Но вы можете развиваться вместе с нашими материалами или порекомендовать более опытного коллегу!",
+          ctas: [
+            { text: "Посмотреть вакансии Junior QA", style: "primary", icon: "Search", linkQuery: "Junior QA Engineer" }
+          ],
+          history_insight: null,
+          habr_article: {
+            title: "Путь развития в IT: с чего начать",
+            url: "https://habr.com/ru/companies/sovcombank_technologies/articles/865970/"
+          },
+          suggest_referral: true // ТРИГГЕР ДЛЯ БОНУСА ЗА ДРУГА
+        });
+      }
+    }, 1500);
+  });
+};

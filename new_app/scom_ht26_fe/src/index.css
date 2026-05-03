@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  /* Цвета с реального сайта */
+  --color-sv-blue: #3B5EFE;     /* Яркий синий для главных кнопок */
+  --color-sv-blue-hover: #2946D6;
+  --color-sv-dark: #1A1A1A;     /* Почти черный для заголовков */
+  --color-sv-gray-bg: #F4F6F9;  /* Светло-серый фон плашек и сайдбара */
+  --color-sv-red: #E43E3A;
+  
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-[#222] font-sans;
+  }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-in {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
